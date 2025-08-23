@@ -10,7 +10,8 @@ app.use(express.static(path.join(__dirname, "docs")));
 app.use(bodyParser.json());
 
 // ✅ Load Firebase credentials
-const serviceAccount = JSON.parse(process.env.FIREBASE_KEY.replace(/\\n/g, '\n'));
+const serviceAccount = JSON.parse(process.env.VERCEL_FIREBASE_KEY);
+
 console.log("Service Account Loaded:", serviceAccount.project_id); // debug
 
 // ✅ Initialize Firebase
@@ -106,4 +107,5 @@ app.get("/api/cart/:userId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
 
