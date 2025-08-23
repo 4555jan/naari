@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Product Details</title>
+<link rel="stylesheet" href="naari-style-optimized.css" />
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Back Button */
+  .back-btn {
+    display: inline-block;
+    background-color: #b3005e;
+    color: white;
+    padding: 8px 16px;
+    margin: 20px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.3s;
+  }
+  .back-btn:hover {
+    background-color: #8a0049;
+  }
+
+  /* Product Details Layout */
+  .product-details {
+    max-width: 1100px;
+    margin: 40px auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    gap: 30px;
+  }
+
+  .product-image-container {
+    flex: 1 1 350px;
+    text-align: center;
+  }
+  .product-image-container img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .product-info {
+    flex: 1 1 350px;
+    padding: 10px 20px;
+  }
+  .product-info h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  .product-info p {
+    margin: 15px 0;
+    font-size: 15px;
+    color: #555;
+  }
+  .product-info h3 {
+    font-size: 22px;
+    margin: 20px 0;
+    color: #b3005e;
+  }
+
+  /* Add to Cart Button */
+  .add-to-cart-btn {
+    background-color: #b3005e;
+    color: white;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .add-to-cart-btn:hover {
+    background-color: #8a0049;
+    transform: scale(1.03);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .product-details {
+      flex-direction: column;
+      text-align: center;
+    }
+    .product-info {
+      padding: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-btn">← Back to Home</a>
+
+<div class="product-details">
+  <div class="product-image-container">
+    <img id="productImage" src="" alt="">
+  </div>
+  <div class="product-info">
+    <h2 id="productName"></h2>
+    <p id="productDesc"></p>
+    <h3 id="productPrice"></h3>
+    <button class="add-to-cart-btn" onclick="addToCartFromDetails()">Add to Cart</button>
+  </div>
+</div>
+
+<script src="cart.js"></script>
+<script>
+  // Get URL parameters
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get("name");
+  const price = params.get("price");
+  const img = params.get("img");
+  const desc = params.get("desc");
+
+  // Populate page
+  document.getElementById("productName").textContent = name;
+  document.getElementById("productPrice").textContent = "₹" + price;
+  document.getElementById("productImage").src = img;
+  document.getElementById("productDesc").textContent = desc;
+
+  // Add to cart from details page
+  function addToCartFromDetails() {
+    addToCart(name, parseFloat(price), img);
+  }
+</script>
+</body>
+</html>

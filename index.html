@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naari - Elegant Fashion</title>
+  <link rel="stylesheet" href="naari-style-optimized.css" />
+  <!-- Firebase App -->
+  <script type="module">
+
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    // Your Firebase config (replace with your own from Firebase Console)
+    const firebaseConfig = {
+      apiKey: "AIzaSyATrLHBhp32mbHWHX6xorjkmB0JQu2aRZ8",
+      authDomain: "naari-6c8bb.firebaseapp.com",
+      projectId: "naari-6c8bb",
+      storageBucket: "naari-6c8bb.firebasestorage.app",
+      messagingSenderId: "1091736337512",
+      appId: "1:1091736337512:web:eef4dc8a9f942fcab24fdd",
+      measurementId: "G-L5W6XKHZM1"
+    };
+
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // --------- AUTH FUNCTIONS ----------
+
+    // Email/Password Login
+    async function loginEmailPassword() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        alert("Logged in as " + userCred.user.email);
+        showPage('home'); // redirect to home
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    // Email/Password Signup
+    async function signupEmailPassword() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        alert("Account created for " + userCred.user.email);
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    // Google Login
+    async function googleLogin() {
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        alert("Signed in with Google: " + result.user.displayName);
+        showPage('home');
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    // Logout
+    async function logout() {
+      await signOut(auth);
+      alert("Logged out!");
+      showPage('login');
+    }
+
+
+    onAuthStateChanged(auth, (user) => {
+      const profilePic = document.getElementById("profile-pic");
+      const logoutBtn = document.getElementById("logout-btn");
+      if (user) {
+        if (user.photoURL) {
+          profilePic.src = user.photoURL;
+          profilePic.style.display = "inline-block";
+
+
+        } else {
+          profilePic.style.display = "none"; // fallback if no pic
+        }
+
+        logoutBtn.style.display = "inline-block";
+        console.log("User logged in:", user.uid);
+        localStorage.setItem("uid", user.uid); // save for cart
+      } else {
+        console.log("No user logged in");
+        localStorage.removeItem("uid");
+
+        profilePic.style.display = "none";
+        logoutBtn.style.display = "none";
+      }
+
+    });
+
+    // attach functions to global
+    window.loginEmailPassword = loginEmailPassword;
+    window.signupEmailPassword = signupEmailPassword;
+    window.googleLogin = googleLogin;
+    window.logout = logout;
+  </script>
+
+</head>
+
+<script>
+  function showPage(pageId) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+      page.classList.remove('active');
+    });
+
+    // Show the selected page
+    document.getElementById(pageId).classList.add('active');
+
+    // Scroll to top (optional)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+<body>
+  <div class="floating-bg">
+    <span style="left: 10%; animation-delay: 0s;"></span>
+    <span style="left: 30%; animation-delay: 0s;"></span>
+    <span style="left: 50%; animation-delay: 0s;"></span>
+    <span style="left: 70%; animation-delay: 0s;"></span>
+    <span style="left: 90%; animation-delay: 0s;"></span>
+  </div>
+
+  <div class="offer-banner">
+    <p>🔥 20% OFF on all orders! | Free Shipping above ₹999 | 🎉 Festive Sale Live Now! 🎉</p>
+  </div>
+
+  <!-- Header -->
+  <!-- ✅ In your header -->
+  <header>
+    <div class="user-profile">
+      <img id="profile-pic" src="" alt="User Profile"
+        style="width:40px; height:40px; border-radius:50%; display:none;" />
+      <button id="logout-btn" onclick="logout()"
+        style="display:none; margin-left:10px; background:#b3005e; color:white; border:none; border-radius:6px; padding:5px 10px; cursor:pointer;">
+        Logout
+      </button>
+    </div>
+
+    <div class="logo">
+      <img src="narii1-removebg-preview.png" alt="Naari Logo">
+    </div>
+    <nav>
+      <a href="#" onclick="showPage('home')">Home</a>
+      <a href="#" onclick="showPage('products')">Products</a>
+      <a href="#" onclick="showPage('cart')">Cart</a>
+      <a href="#" onclick="showPage('login')">Login</a>
+      <a href="#" onclick="showPage('about')">About</a>
+    </nav>
+
+
+
+    <div class="hamburger" onclick="toggleMobileMenu()">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="#" onclick="showPage('home'); toggleMobileMenu()">Home</a>
+      <a href="#" onclick="showPage('products'); toggleMobileMenu()">Products</a>
+      <a href="#" onclick="showPage('cart'); toggleMobileMenu()">Cart</a>
+      <a href="#" onclick="showPage('about'); toggleMobileMenu()">About</a>
+      <a href="#" onclick="showPage('login'); toggleMobileMenu()">Login</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <div class="hero-container">
+    <video autoplay muted loop playsinline>
+      <source src="janci.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-overlay">
+      <h1>Welcome to Naari</h1>
+      <p>Unleash your elegance. Embrace your essence.</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Home -->
+    <section id="home" class="page active">
+      <h2>Welcome to Naari</h2>
+      <p style="margin-bottom: 20px;">Naari is where strength meets style. Discover elegant ethnic and fusion wear
+        designed to empower every woman.</p>
+
+      <div class="carousel">
+        <button class="carousel-button prev" onclick="moveSlide(-1)">&#10094;</button>
+        <div class="carousel-track" id="carouselTrack">
+          <img src="pic1.png" alt="Slide 1">
+          <img src="pic2.png" alt="Slide 2">
+          <img src="pic3.png" alt="Slide 3">
+          <img src="pic4.png" alt="Slide 4">
+        </div>
+        <button class="carousel-button next" onclick="moveSlide(1)">&#10095;</button>
+      </div>
+
+      <div style="margin-top: 30px;">
+        <button onclick="showPage('products')"
+          style="padding: 12px 24px; background-color: #b3005e; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">Browse
+          Collection</button>
+      </div>
+    </section>
+
+
+    <section id="products" class="page">
+      <h2>Our Dresses</h2>
+      <div class="product-slider-container">
+        <button class="product-slider-button prev" onclick="scrollProducts(-1)">&#10094;</button>
+        <div class="product-slider" id="productSlider">
+        </div>
+        <button class="product-slider-button next" onclick="scrollProducts(1)">&#10095;</button>
+      </div>
+
+    </section>
+    <section id="about" class="page">
+      <h2>About Us</h2>
+      <div
+        style="max-width: 800px; margin: auto; padding: 20px; background: #fffaf0; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        <p style="font-size: 1.1rem; line-height: 1.6; color: #333;">
+          <strong>Naari</strong> isn't just a fashion brand – it's a celebration of womanhood. Our story begins with a
+          simple belief: <em>fashion should be empowering, not intimidating.</em><br><br>
+
+          We design each piece to complement the diverse personalities and lives of Indian women. Whether you're headed
+          to work, a festive gathering, or a casual day out, our handcrafted apparel reflects grace, confidence, and
+          cultural pride.<br><br>
+
+          Founded by women, made for women – Naari is rooted in authenticity, elegance, and impact. Join our journey and
+          wear your story with pride.
+          <br>
+          <br>
+          <strong> terms and conditions</strong>
+          1. COD not accepted
+          <br>
+          2.sizing :-S, M ,L, XL ,XXL
+          <br>
+          3.processing and delivery :- stitching -2-3 days
+          .delivery-5-6days<Br>
+          4.Orders dm and website
+          <br>
+          5.No cancellation and return ,refund only it its our mistake { wrong size,item,or defect}
+          .you send us a full uncut video of unboxing [no-cuts]
+          <br>
+          6.Refund will be proceed after we receive and check the returned item.
+          <br>
+          <br>
+          contact number 9975291444
+        </p>
+      </div>
+    </section>
+
+
+
+    <section id="cart" class="page">
+      <h2>Your Cart</h2>
+      <div id="cart-items"></div>
+
+      <h3 id="cart-total">Total: ₹0</h3>
+    </section>
+
+
+    <section id="login" class="page">
+      <div class="login-container">
+        <h2>Login to Naari</h2>
+
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@example.com" required>
+        </div>
+
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter password" required>
+        </div>
+
+        <button class="btn-login" onclick="loginEmailPassword()">Login</button>
+
+        <div class="google-btn" onclick="googleLogin()">
+          Sign in with Google
+        </div>
+
+        <div class="signup-text">
+          Don't have an account?
+          <a href="#" onclick="signupEmailPassword()">Sign up</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <footer>
+    &copy; 2025 Naari Clothing Co. | Made with ♡ for every woman.
+  </footer>
+
+  <script src="cart.js"></script>
+</body>
+
+</html>
