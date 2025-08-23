@@ -6,7 +6,7 @@ const admin = require("firebase-admin");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(express.static(path.join(__dirname, "docs")));
+app.use(express.static(__dirname));
 app.use(bodyParser.json());
 
 // ✅ Load Firebase credentials
@@ -23,7 +23,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "docs", "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 // ✅ Update item quantity in cart
 app.post("/api/cart/update", async (req, res) => {
@@ -108,6 +108,7 @@ app.get("/api/cart/:userId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
 
 
 
