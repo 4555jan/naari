@@ -13,8 +13,7 @@ app.use(express.static(path.join(__dirname, "docs")));
 app.use(bodyParser.json());
 app.use(cors());
 
-
-const serviceAccount = require("./services.json");
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 console.log("Service Account Loaded:", serviceAccount.project_id); 
 admin.initializeApp({
@@ -173,3 +172,4 @@ app.get("/api/cart/:userId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
