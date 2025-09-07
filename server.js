@@ -1,31 +1,83 @@
-const express = require("express");
+const express = require("express")
 const path = require("path");
 const bodyParser = require("body-parser");
 const admin = require("firebase-admin");
-
+const Razorpay = require("razorpay");
+const cors = require("cors");
 const app = express();
+require("dotenv").config();
+
 const PORT = process.env.PORT || 3001;
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "docs")));
 app.use(bodyParser.json());
+app.use(cors());
 
-// ✅ Load Firebase credentials
-const serviceAccount = JSON.parse(process.env.VERCEL_FIREBASE_KEY);
-serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
-console.log("Service Account Loaded:", serviceAccount.project_id); // debug
+const serviceAccount = require("./services.json");
 
-// ✅ Initialize Firebase
+console.log("Service Account Loaded:", serviceAccount.project_id); 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,   
+    key_secret: process.env.RAZORPAY_KEY_SECRET
 });
-// ✅ Update item quantity in cart
+
+app.post("/create-order", async (req, res) => {
+    try {
+        const options = {
+            amount: req.body.amount * 100, 
+            currency: "INR",
+            receipt: "order_rcptid_11"
+        };
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+app.post("/api/cart/remove", async (req, res) => {
+  try {
+    const { userId, name } = req.body;
+
+    if (!userId || !name) {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+
+    const cartRef = db.collection("carts").doc(userId);
+    const doc = await cartRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Cart not found" });
+    }
+
+    const items = doc.data().items || [];
+    const updatedItems = items.filter(item => item.name !== name);
+
+    await cartRef.update({ items: updatedItems });
+
+    res.json({ message: "Item removed from cart", items: updatedItems });
+    console.log(`🗑️ Removed ${name} from ${userId}'s cart`);
+  } catch (err) {
+    console.error("🔥 Remove item error:", err.message);
+    res.status(500).json({ error: "Failed to remove item" });
+  }
+});
+
+
+
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "docs", "index.html"));
+});
+
+
 app.post("/api/cart/update", async (req, res) => {
   try {
     const { userId, name, quantity } = req.body;
@@ -52,13 +104,11 @@ app.post("/api/cart/update", async (req, res) => {
 });
 
 
-// Example: add item to cart
-// Example: add item to cart
 app.post("/api/cart", async (req, res) => {
   try {
     const { userId, name, price, image, quantity } = req.body;
 
-    // 🔍 Validate inputs
+  
     if (!userId || !name || price === undefined || !image || quantity === undefined) {
       return res.status(400).json({ error: "Invalid cart item data" });
     }
@@ -78,7 +128,7 @@ app.post("/api/cart", async (req, res) => {
     );
 
     res.json({ message: "Item added to cart" });
-    console.log("✅ Item added to cart:", name);
+    console.log("Item added to cart:", name);
 
   } catch (err) {
     console.error("🔥 Firestore error:", err.message);
@@ -87,7 +137,22 @@ app.post("/api/cart", async (req, res) => {
 });
 
 
-// backend (server.js)
+app.delete("/api/delete-user/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+
+    await db.collection("carts").doc(uid).delete();
+
+    res.json({ message: "User data deleted from Firestore" });
+    console.log(` Deleted user Firestore data: ${uid}`);
+  } catch (err) {
+    console.error("Delete user error:", err.message);
+    res.status(500).json({ error: "Failed to delete user data" });
+  }
+});
+
+
 app.get("/api/cart/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -108,7 +173,3 @@ app.get("/api/cart/:userId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
-
-
-
-
