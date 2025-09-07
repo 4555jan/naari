@@ -100,6 +100,33 @@
   }
 </style>
 </head>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyATrLHBhp32mbHWHX6xorjkmB0JQu2aRZ8",
+  authDomain: "naari-6c8bb.firebaseapp.com",
+  projectId: "naari-6c8bb",
+  storageBucket: "naari-6c8bb.firebasestorage.app",
+  messagingSenderId: "1091736337512",
+  appId: "1:1091736337512:web:eef4dc8a9f942fcab24fdd",
+  measurementId: "G-L5W6XKHZM1"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.currentUser = user;
+    window.currentUserId = user.uid;
+  } else {
+    window.currentUser = null;
+    window.currentUserId = null;
+  }
+});
+</script>
 <body>
 
 <a href="index.html" class="back-btn">← Back to Home</a>
