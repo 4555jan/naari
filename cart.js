@@ -535,7 +535,7 @@ async function checkout(total) {
     
     // Initialize Razorpay checkout
     const options = {
-      key: 'rzp_test_RCMBkQze1l1rGw',
+      key: 'rzp_live_REd97P3Py7pRGM',
       amount: order.amount,
       currency: 'INR',
       order_id: order.id,
@@ -608,3 +608,4 @@ function scrollProducts(direction) {
     slider.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
   }
 }
+
