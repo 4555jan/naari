@@ -8,8 +8,7 @@ const app = express();
 require("dotenv").config();
 
 const PORT = process.env.PORT || 3001;
-
-app.use(express.static(path.join(__dirname, "docs")));
+app.use(express.static(path.join(__dirname)));
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -74,7 +73,7 @@ app.post("/api/cart/remove", async (req, res) => {
 
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "docs", "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 
@@ -173,5 +172,6 @@ app.get("/api/cart/:userId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
 
 
