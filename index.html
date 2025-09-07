@@ -6,12 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Naari - Elegant Fashion</title>
   <link rel="stylesheet" href="naari-style-optimized.css" />
-  <!-- Firebase App -->
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  
   <script type="module">
 
     // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    import {
+      getFirestore, doc, deleteDoc, getDoc
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import {
+      getStorage, ref, deleteObject
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
     // Your Firebase config (replace with your own from Firebase Console)
     const firebaseConfig = {
@@ -27,17 +37,27 @@
     // Init Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-
-    // --------- AUTH FUNCTIONS ----------
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
     // Email/Password Login
     async function loginEmailPassword() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      
+      if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
       try {
         const userCred = await signInWithEmailAndPassword(auth, email, password);
-        alert("Logged in as " + userCred.user.email);
+        showSuccessToast("Welcome back! Logged in as " + userCred.user.email);
         showPage('home'); // redirect to home
+        
+        // Clear the form
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
       } catch (error) {
         alert(error.message);
       }
@@ -47,9 +67,25 @@
     async function signupEmailPassword() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      
+      if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      if (password.length < 6) {
+        alert("Password should be at least 6 characters long.");
+        return;
+      }
+
       try {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        alert("Account created for " + userCred.user.email);
+        showSuccessToast("Account created successfully! Welcome to Naari!");
+        showPage('home');
+        
+        // Clear the form
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
       } catch (error) {
         alert(error.message);
       }
@@ -60,7 +96,7 @@
       const provider = new GoogleAuthProvider();
       try {
         const result = await signInWithPopup(auth, provider);
-        alert("Signed in with Google: " + result.user.displayName);
+        showSuccessToast("Welcome! Signed in with Google: " + result.user.displayName);
         showPage('home');
       } catch (error) {
         alert(error.message);
@@ -70,42 +106,115 @@
     // Logout
     async function logout() {
       await signOut(auth);
-      alert("Logged out!");
+      showSuccessToast("Logged out successfully!");
       showPage('login');
     }
 
+    async function deleteAccount() {
+      if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+        return;
+      }
 
+      try {
+        const uid = auth.currentUser.uid;
+        
+        // Delete user data from Firestore (cart data)
+        await fetch(`/api/delete-user/${uid}`, { method: 'DELETE' });
+        
+        // Delete user from Firebase Auth
+        await deleteUser(auth.currentUser);
+        
+        showSuccessToast("Account deleted successfully");
+        showPage("login");
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        alert(error.message);
+      }
+    }
+
+    // ✅ UPDATED: Better auth state handling
     onAuthStateChanged(auth, (user) => {
       const profilePic = document.getElementById("profile-pic");
       const logoutBtn = document.getElementById("logout-btn");
+      const loginLink = document.querySelector('nav a[onclick*="login"]');
+      
       if (user) {
+        // User is logged in
         if (user.photoURL) {
           profilePic.src = user.photoURL;
           profilePic.style.display = "inline-block";
-
-
         } else {
-          profilePic.style.display = "none"; // fallback if no pic
+          profilePic.style.display = "none";
         }
 
         logoutBtn.style.display = "inline-block";
+        
+        // Hide login link when logged in
+        if (loginLink) {
+          loginLink.style.display = "none";
+        }
+        
         console.log("User logged in:", user.uid);
-        localStorage.setItem("uid", user.uid); // save for cart
+        
+        // Update cart system with user ID
+        window.currentUser = user;
+        window.currentUserId = user.uid;
+        
+        // Initialize cart auth listener if cart.js is loaded
+        if (window.initAuthListener) {
+          window.initAuthListener(auth);
+        }
+        
       } else {
+        // User is logged out
         console.log("No user logged in");
-        localStorage.removeItem("uid");
-
         profilePic.style.display = "none";
         logoutBtn.style.display = "none";
+        
+        // Show login link when logged out
+        if (loginLink) {
+          loginLink.style.display = "inline";
+        }
+        
+        // Clear user data
+        window.currentUser = null;
+        window.currentUserId = null;
       }
-
     });
+
+    // ✅ NEW: Success toast function
+    function showSuccessToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        z-index: 10000;
+        font-weight: bold;
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        animation: slideInRight 0.3s ease-out;
+      `;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease-in forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
 
     // attach functions to global
     window.loginEmailPassword = loginEmailPassword;
     window.signupEmailPassword = signupEmailPassword;
     window.googleLogin = googleLogin;
     window.logout = logout;
+    window.deleteAccount = deleteAccount;
+
   </script>
 
 </head>
@@ -161,8 +270,6 @@
       <a href="#" onclick="showPage('about')">About</a>
     </nav>
 
-
-
     <div class="hamburger" onclick="toggleMobileMenu()">
       <div></div>
       <div></div>
@@ -199,7 +306,7 @@
       <div class="carousel">
         <button class="carousel-button prev" onclick="moveSlide(-1)">&#10094;</button>
         <div class="carousel-track" id="carouselTrack">
-          <img src="pic1.png" alt="Slide 1">
+          <img src="realpic.jpg" alt="Slide 1">
           <img src="pic2.png" alt="Slide 2">
           <img src="pic3.png" alt="Slide 3">
           <img src="pic4.png" alt="Slide 4">
@@ -214,7 +321,6 @@
       </div>
     </section>
 
-
     <section id="products" class="page">
       <h2>Our Dresses</h2>
       <div class="product-slider-container">
@@ -223,8 +329,8 @@
         </div>
         <button class="product-slider-button next" onclick="scrollProducts(1)">&#10095;</button>
       </div>
-
     </section>
+    
     <section id="about" class="page">
       <h2>About Us</h2>
       <div
@@ -253,7 +359,7 @@
           5.No cancellation and return ,refund only it its our mistake { wrong size,item,or defect}
           .you send us a full uncut video of unboxing [no-cuts]
           <br>
-          6.Refund will be proceed after we receive and check the returned item.
+          6.Refund will be proceed after we receive and check the returned item.
           <br>
           <br>
           contact number 9975291444
@@ -261,15 +367,11 @@
       </div>
     </section>
 
-
-
     <section id="cart" class="page">
       <h2>Your Cart</h2>
       <div id="cart-items"></div>
-
       <h3 id="cart-total">Total: ₹0</h3>
     </section>
-
 
     <section id="login" class="page">
       <div class="login-container">
@@ -295,11 +397,15 @@
           Don't have an account?
           <a href="#" onclick="signupEmailPassword()">Sign up</a>
         </div>
+        <button onclick="deleteAccount()"
+          style="margin-left:10px; background:red; color:white; border:none; border-radius:6px; padding:5px 10px; cursor:pointer;">
+          Delete Account
+        </button>
+
       </div>
     </section>
 
   </main>
-
 
   <footer>
     &copy; 2025 Naari Clothing Co. | Made with ♡ for every woman.
