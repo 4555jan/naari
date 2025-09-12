@@ -34,12 +34,12 @@ window.initAuthListener = function(auth) {
 
 document.addEventListener("DOMContentLoaded", function () {
   const products = [
-    { name: "Pink Festive Kurti", price: 599, img: "realpic.jpg", desc: "A blend of grace and comfort" },
-    { name: "Elegant Floral Kurti", price: 799, img: "realpic1.jpg", desc: "Bright and beautiful for every occasion" },
-    { name: "Royal Blue Anarkali", price: 999, img: "realpic2.jpg", desc: "Flowing elegance with rich colors" },
-    { name: "Casual Day Kurti", price: 699, img: "realpic3.jpg", desc: "Perfect for a casual outing" },
-    { name: "Golden Festive Gown", price: 1499, img: "pic7.jpg", desc: "Shimmering gold for special days" },
-    { name: "Classic Black Kurti", price: 899, img: "pic8.jpg", desc: "Simple, sleek, and stylish" }
+    { name: "Pink Festive Kurti", price: 50, img: "realpic.jpg", desc: "A blend of grace and comfort" },
+    { name: "Elegant Floral Kurti", price: 100, img: "realpic1.jpg", desc: "Bright and beautiful for every occasion" },
+    { name: "Royal Blue Anarkali", price: 100, img: "realpic2.jpg", desc: "Flowing elegance with rich colors" },
+    { name: "Casual Day Kurti", price: 100, img: "realpic3.jpg", desc: "Perfect for a casual outing" },
+    { name: "Golden Festive Gown", price: 100, img: "pic7.jpg", desc: "Shimmering gold for special days" },
+    { name: "Classic Black Kurti", price: 50, img: "pic8.jpg", desc: "Simple, sleek, and stylish" }
   ];
 
   const productSlider = document.getElementById("productSlider");
@@ -608,5 +608,6 @@ function scrollProducts(direction) {
     slider.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
   }
 }
+
 
 
