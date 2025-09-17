@@ -29,6 +29,9 @@ const razorpay = new Razorpay({
 });
 
 // Routes
+app.get("/", (req, res) => {
+  res.send("API working on Vercel 🚀");
+});
 
 app.post("/create-order", async (req, res) => {
   try {
@@ -179,3 +182,4 @@ if (require.main === module) {
 
 // Export handler for Vercel
 module.exports = app;
+
